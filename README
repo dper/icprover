@@ -2,24 +2,14 @@ ICProver is an automated theorem prover.  It is written in OCaml
 and implements the intercalation calculus. 
 
 Current versions of this program should be available at:
-- https://nomad.dname.net/data/icprover/
+- https://github.com/dper/icprover
 
 There are several ways to contact the author:
-- gmail: douglaspperkins
-- facebook: Douglas Perkins
-- blog comment: http://douglaspperkins.blogspot.com
-
-The problem files do not contain the GPL license text simply 
-because the parser does not handle comments.  However, I do 
-release them under the GPL.  This applies to the following files:
-- test/negative-classical.txt
-- test/negative-intuition.txt
-- test/positive-classical.txt
-- test/positive-intuition.txt
-- parser/questions.txt
+- https://microca.st/dper
+- https://twitter.com/dpp0
+- https://dperkins.org
 
 See also:
-- https://nomad.dname.net/thesis/index.html
-- https://nomad.dname.net/thesis/thesis.pdf
+- https://dperkins.org/arc/2007-07-20.masters%20thesis.html
 - http://www.hss.cmu.edu/philosophy/faculty-sieg.php
 - http://en.wikipedia.org/wiki/Natural_deduction
