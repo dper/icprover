@@ -1,0 +1,17 @@
+P |- P
+|- (P -> P)
+P |- (P v Q)
+P |- (Q v P)
+(P -> Q), P |- Q
+(A v B), (A -> C), (B -> C) |- C
+(A -> (B v C)), (B -> D), (C -> D), A |- D
+P |- ~~P
+~P |- ~~~P
+(A v (B v (C v D))), (A -> E), (B -> E), (C -> E), (D -> E) |- E
+~(P v Q) |- (~P & ~Q)
+(~P v ~Q) |- ~(P & Q)
+(~P & ~Q) |- ~(P v Q)
+(P <-> Q), P |- Q
+(P <-> Q), Q |- P
+|- (P <-> P)
+((P -> Q) & (Q -> P)) |- (Q <-> P)
