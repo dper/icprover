@@ -15,8 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with ICProver.  If not, see <http://www.gnu.org/licenses/>.
 
-all: prover.cmo \
-	parser.ml lexer.ml loader.cmo loader.test \
+all: parser.ml lexer.ml loader.cmo loader.test \
 	proveformula.cmo \
 	file-test.cmo file.test \
 	doc
@@ -24,7 +23,7 @@ all: prover.cmo \
 doc: *.ml
 	mkdir -p doc
 	ocamldoc -colorize-code -all-params -html -d doc -keep-code \
-		prover.ml loader.ml loader.mli
+		prover.ml loader.ml
 
 clean:
 	rm -f *.cmo *.cmi *.test
@@ -32,9 +31,6 @@ clean:
 	rm -rf doc
 	rm -f parser.mli
 	rm -f proveformula
-
-prover.cmo:
-	ocamlc -c prover.ml
 
 parser.ml:
 	ocamlyacc parser.mly
@@ -48,7 +44,7 @@ lexer.ml:
 loader.cmo: parser.ml
 	ocamlc -c loader.ml 
 
-proveformula.cmo: prover.cmo parser.cmo lexer.cmo proveformula.ml 
+proveformula.cmo: parser.cmo lexer.cmo proveformula.ml 
 	ocamlc -c proveformula.ml
 	ocamlc -o proveformula \
 		rule.cmo formula.cmo context.cmo extraction.cmo \
@@ -59,11 +55,10 @@ proveformula.cmo: prover.cmo parser.cmo lexer.cmo proveformula.ml
 loader.test:
 	ocamlc -c loader-test.ml
 	ocamlc -o loader.test \
-		prover.cmo \
 		lexer.cmo parser.cmo loader.cmo \
 		loader-test.cmo
 
-file-test.cmo: prover.cmo file-test.ml context-test.ml
+file-test.cmo: file-test.ml context-test.ml
 	ocamlc -c formula-test.ml
 	ocamlc -c context-test.ml
 	ocamlc -c extraction-test.ml
