@@ -1,3 +1,5 @@
+#use "prover.ml"
+
 open Question;;
 open Formula;;
 
