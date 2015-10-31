@@ -17,6 +17,7 @@
  * along with ICProver.  If not, see <http://www.gnu.org/licenses/>.
  *)
 
+open Prover;;
 open Extraction;;
 open Formula;;
   
