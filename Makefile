@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with ICProver.  If not, see <http://www.gnu.org/licenses/>.
 
-all: rule.cmo formula.cmo context.cmo extraction.cmo question.cmo proof.cmo \
+all: prover.cmo \
 	parser.ml lexer.ml loader.cmo loader.test \
 	proveformula.cmo \
 	file-test.cmo file.test \
@@ -35,18 +35,6 @@ clean:
 	rm -rf doc
 	rm -f parser.mli
 	rm -f proveformula
-
-rule.cmo: rule.mli rule.ml
-	ocamlc -c rule.mli rule.ml
-
-formula.cmo: formula.mli formula.ml
-	ocamlc -c formula.mli formula.ml
-
-context.cmo: formula.cmo context.mli context.ml
-	ocamlc -c context.mli context.ml
-
-extraction.cmo: formula.cmo extraction.mli extraction.ml context.ml context.mli
-	ocamlc -c extraction.mli extraction.ml
 
 question.cmo: extraction.cmo rule.cmo question.mli question.ml
 	ocamlc -c question.mli question.ml
