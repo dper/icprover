@@ -490,3 +490,118 @@ module Question = struct
 	let expand_intuition (q:question):dependencies list =
 		(expand_basic q) @ (ex_falso_quodlibet q)
 end
+
+(* A thread of a proof search. *)
+module Thread = struct
+	type thread = (Question.question * (Rule.rule option)) list;;
+
+	(* 
+  	@param t The thread.
+	*)
+	let repeat_question (t:thread):bool =
+  	match t with
+  	| [] -> failwith "Threads should not be empty."
+  	| _::[] -> false
+  	| ((c, g), _)::l -> List.exists (fun ((bc, bg), _) -> 
+			(Formula.equals bg g) && (Context.subcontext c bc)) l
+
+	(* 
+		@param t The thread.
+	*)
+	let extra_ex_falso_quodlibet (t:thread):bool =
+		match t with
+		| [] -> failwith "Threads should not be empty."
+		| ((cc, _), Some Rule.Ef)::((co, _), _)::_ -> Context.subcontext cc co
+		| _ -> false
+
+	(* One should not use ~C on the positive half of a contradictory pair.
+   	It's not obvious how much checking for this would affect proof search
+   	speed, though in cases of backtracking on falsums, it would probably
+   	be significant.  In programmatic terms, if the head of a thread is shown
+   	by ~C and the second element is shown by _|_I, then that thread
+   	should not be pursued.  The current strategy of using just threads
+   	that are question lists does not appear effective for this.  I can either
+   	be creative in backtrack checking or extend threads some.  But even
+   	adding the rule application to threads isn't quite enough -- some
+   	contextual knowledge of, say, which premise an element is, is also 
+   	necessary.
+
+   	TODO Write method to be used right after repeat_question that filters
+   	out such rule applications.
+	*)
+end
+
+(* A proof.*)
+module Proof = struct
+	type search_type = Classical | Intuitionistic;;
+
+	(* A proof.  The question, its dependencies, and the rule justifying it. *)
+	type proof = { q: Question.question;
+               	a: proof list;
+               	r: Rule.rule };;
+
+	(* Returns Some p where p is a proof of q, or None if no proof can be found.
+		@param expand The expansion function -- applies inference rules.
+		@param t The thread; initially [] and built as rules are applied.
+		@param q The question to be proven.
+	*)
+	let rec thread_search expand t ((c, g) as q):proof option =
+  	if (Context.exists c g) then Some { q = (c, g) ; a = [] ; r = Rule.Pr } else
+  	if (Thread.repeat_question t) then None else 
+  	if (Thread.extra_ex_falso_quodlibet t) then None else
+  	(* Add other context-specific filters here. *)
+  
+  	(* Tries to prove all questions.  If this is possible, returns
+  	Some pl where pl is the list of the subproofs, and if not
+  	returns None.  Returns Some [] when given [] questions. *)
+  	let rec search_questions (questions, rule) answers: proof list option =
+    	match questions with
+    	| [] -> Some answers
+    	| question::question_tail ->
+      	(match thread_search expand ((question, Some rule)::t) question with
+      	| None -> None
+      	| Some p -> 
+        	let answers = p::answers in
+        	search_questions (question_tail, rule) answers)
+  	in
+  	let search_question ((questions, rule):Question.dependencies):proof option =
+   		match search_questions (questions, rule) [] with
+    	| None -> None
+    	| Some answers -> Some { q = q ; a = answers ; r = rule }
+  	in
+
+  	(* Tries to prove the dependencies.  Returns Some p where p is a proof of
+  	a dependecies if one can be found, or None if none can be found.  Stops as
+  	soon as one is found. *)
+  	let rec search_expansion expansion:proof option = 
+    	match expansion with
+    	| [] -> None
+    	| dependencies::expansion_tail ->
+      	(match search_question dependencies with
+      	| None -> search_expansion expansion_tail 
+      	| Some p -> Some p)
+  	in
+  	search_expansion (expand q)
+
+	(* Searches for a proof of q using search type st.
+  	@param st The search type.
+  	@param q The question.
+	*)
+	let search (st:search_type) (q:Question.question):proof option =
+	match st with
+	| Intuitionistic -> thread_search Question.expand_intuition [(q, None)] q
+	| Classical -> thread_search Question.expand_classical [(q, None)] q 
+
+	(* Returns a string of the proof.
+   	@param p The proof.
+	*)
+	let to_string (p:proof):string = 
+  	let rec to_string_i p i =
+    	let sp = String.make i ' ' in
+    	let qs = Question.to_string p.q in
+    	let rs = "(" ^ Rule.to_string p.r ^ ")" in
+    	let line = rs ^ " " ^ sp ^ qs in
+    	List.fold_right (fun p s -> (to_string_i p (i + 2)) ^ "\n" ^ s) p.a line 
+  	in
+  	to_string_i p 0
+end
