@@ -1,4 +1,4 @@
-#use "prover.ml"
+#use "prover.ml";;
 
 open Question;;
 open Formula;;
@@ -37,3 +37,5 @@ print_endline "Testing Question.expand.";;
 [] != expand_classical q6 || failwith "Should be a depencency (6).";;
 [] != expand_classical q7 || failwith "Should be a dependency (7).";;
 [] != expand_classical q8 || failwith "Should be a dependency (8).";;
+
+print_endline "If there were no errors, all tests passed.";;

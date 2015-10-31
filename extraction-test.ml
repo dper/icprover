@@ -51,3 +51,5 @@ let cll2 = find_bottom_branches b_And_NegA;;
 [] != cll2 || failwith "Should be contradictions (4).";;
 let cll3 = find_bottom_branches negA_Or_NegB;;
 List.length cll3 = 2 || failwith "Should be two contradictions (6).";;
+
+print_endline "If there were no errors, all tests passed.";;

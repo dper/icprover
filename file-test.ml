@@ -1,4 +1,4 @@
-#use "prover.ml"
+#use "prover.ml";;
 
 let failures_to_string failures =
 	List.fold_right 
