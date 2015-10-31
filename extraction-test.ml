@@ -1,4 +1,5 @@
-open Prover;;
+#use "prover.ml"
+
 open Extraction;;
 open Formula;;
   
