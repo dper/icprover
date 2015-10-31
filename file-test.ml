@@ -5,9 +5,9 @@ let failures_to_string failures =
 		(fun (q, _) s -> (s ^ "\n" ^ Question.to_string q)) failures ""
 
 (* Returns true iff all questions in the file are proven.
-	- The file must exist and be readable.
-	@param file The file name.
-  @param search_type The search type.
+   Invariants: The file must exist and be readable.
+   @param file The file name.
+   @param search_type The search type.
 *)
 let prove search search_type file =
 	let ql = Loader.load file in
@@ -29,9 +29,9 @@ let prove search search_type file =
 ;;
 
 (* Returns true iff none of the questions in the file are proven.
-	- The file must exist and be readable.
-	@param file The file name.
-	@param search_type The search type.
+   Invariants: The file must exist and be readable.
+   @param file The file name.
+   @param search_type The search type.
 *)
 let do_not_prove search search_type file =
 	let ql = Loader.load file in
@@ -49,7 +49,6 @@ let do_not_prove search search_type file =
 		(string_of_int (List.length results)) ^ ".") in
 	true
 ;;
-
 
 prove Proof.search Proof.Intuitionistic "positive-intuition.txt";;
 prove Proof.search Proof.Classical "positive-classical.txt";;
