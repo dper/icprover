@@ -1,6 +1,6 @@
 (** Loads files of questions into lists. *)
 
-open Prover
+#use "prover.ml"
 
 (** Reads a text file and makes it a string list.
 	- The file to load must be readable.

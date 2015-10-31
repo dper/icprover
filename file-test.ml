@@ -1,3 +1,5 @@
+#use "prover.ml"
+
 let failures_to_string failures =
 	List.fold_right 
 		(fun (q, _) s -> (s ^ "\n" ^ Question.to_string q)) failures ""
