@@ -21,13 +21,10 @@ all: prover.cmo \
 	file-test.cmo file.test \
 	doc
 
-doc: *.ml *.mli
+doc: *.ml
 	mkdir -p doc
 	ocamldoc -colorize-code -all-params -html -d doc -keep-code \
-		formula.ml formula.mli context.ml context.mli \
-		extraction.ml extraction.mli question.ml question.mli \
-		thread.ml thread.mli proof.ml proof.mli \
-		loader.ml loader.mli
+		prover.ml loader.ml loader.mli
 
 clean:
 	rm -f *.cmo *.cmi *.test
@@ -36,14 +33,8 @@ clean:
 	rm -f parser.mli
 	rm -f proveformula
 
-question.cmo: extraction.cmo rule.cmo question.mli question.ml
-	ocamlc -c question.mli question.ml
-
-thread.cmo: question.cmo thread.mli thread.ml
-	ocamlc -c thread.mli thread.ml
-
-proof.cmo: thread.cmo proof.mli proof.ml
-	ocamlc -c proof.mli proof.ml
+prover.cmo:
+	ocamlc -c prover.ml
 
 parser.ml:
 	ocamlyacc parser.mly
@@ -54,10 +45,10 @@ lexer.ml:
 	ocamllex lexer.mll
 	ocamlc -c lexer.ml
 
-loader.cmo:
-	ocamlc -c loader.mli loader.ml 
+loader.cmo: parser.ml
+	ocamlc -c loader.ml 
 
-proveformula.cmo: proof.cmo thread.cmo question.cmo parser.cmo lexer.cmo proveformula.ml 
+proveformula.cmo: prover.cmo parser.cmo lexer.cmo proveformula.ml 
 	ocamlc -c proveformula.ml
 	ocamlc -o proveformula \
 		rule.cmo formula.cmo context.cmo extraction.cmo \
@@ -68,11 +59,11 @@ proveformula.cmo: proof.cmo thread.cmo question.cmo parser.cmo lexer.cmo provefo
 loader.test:
 	ocamlc -c loader-test.ml
 	ocamlc -o loader.test \
-		rule.cmo formula.cmo context.cmo extraction.cmo question.cmo \
+		prover.cmo \
 		lexer.cmo parser.cmo loader.cmo \
 		loader-test.cmo
 
-file-test.cmo: proof.cmo file-test.ml context-test.ml
+file-test.cmo: prover.cmo file-test.ml context-test.ml
 	ocamlc -c formula-test.ml
 	ocamlc -c context-test.ml
 	ocamlc -c extraction-test.ml

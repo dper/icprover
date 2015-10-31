@@ -1,5 +1,7 @@
 (** Loads files of questions into lists. *)
 
+open Prover
+
 (** Reads a text file and makes it a string list.
 	- The file to load must be readable.
 	@param filename The file to load.
