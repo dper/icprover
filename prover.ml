@@ -92,7 +92,7 @@ end
 (* Inference rules. *)
 module Rule = struct
 	type rule = 
-  	  Pr 
+  	| Pr 
 	| Ex 
 	| Ca 
 	| Ai 
