@@ -24,11 +24,21 @@ module Parser = struct
 			exp (String.length s - 1) []
 
 	(*
+		Returns a string for a list of chars.
+		Invariants: none.
+		@param l The list to implode.
+	*)
+	let rec implode (l:char list):string =
+		match l with
+		| []     -> ""
+		| c :: t -> (Char.escaped c) ^ (implode t)
+
+	(*
 		Returns true if the formula string has extra outer parentheses.
 		Invariants: The string represents a formula.
 		@param s The string to check.
 	*)
-	let extraOuterParentheses (s:string):bool = 
+	let extra_outer_parentheses (s:string):bool = 
 		(*
 			If we find a closing parenthesis that matches the
 			opening parenthesis, stop.  If it's the final
@@ -57,8 +67,8 @@ module Parser = struct
 		Invariants: The string represents a formula.
 		@param s The string to strip.
 	*)
-	let removeExtraOuterParentheses (s:string):string =
-		if extraOuterParentheses s then
+	let remove_extra_outer_parentheses (s:string):string =
+		if extra_outer_parentheses s then
 			String.sub s 1 (String.length s - 2)
 		else
 			s
@@ -69,7 +79,7 @@ module Parser = struct
 		operator is the main operator if it's sitting anywhere
 		in the formula not contained in parentheses.
 	*)
-	let findMainBinaryOperator (s:string):int option =
+	let find_main_binary_operator (s:string):int option =
 		(*
 			If we find a binary symbol at top level, return its index.
 			@param l The remaining characters.
@@ -93,12 +103,6 @@ module Parser = struct
 		| l       -> scan l 0 0
 
 	(*
-		TODO
-		- Split on it.
-		- Handle negations.
-	*)
-
-	(*
 		Parses a string and returns a formula.
 		1. Handle atomic formulae.
 		2. If there's a top-level binary operator, handle it.
@@ -106,11 +110,11 @@ module Parser = struct
 		Invariants: The string must be a well-formed formula.
 		@param s The string to be parsed.
 	*)
-	let parseFormula (s:string):Formula.formula =
+	let rec parse_formula (s:string):Formula.formula =
 		print_endline s;
 
 		(* Strip unnecessary outer parentheses. *)
-		let s = removeExtraOuterParentheses s in
+		let s = remove_extra_outer_parentheses s in
 
 		(* A single-character string is atomic. *)
 		if String.length s == 1 then
@@ -118,18 +122,28 @@ module Parser = struct
 			| 'A' .. 'Z' as c -> Formula.Atomic c
 			| _               -> Formula.Bottom
 		else
-			match findMainBinaryOperator s with
+			match find_main_binary_operator s with
 			| Some p -> Formula.Bottom
 			| None -> Formula.Bottom
+
+	(*
+		Parses a string of a formula where the negation is the main operator.
+		Invariants: s is a formula string with a leading negation.
+		@param s The string to be parsed.
+	*)
+	and parse_negation (s:string):Formula.formula =
+		match (explode s) with
+		| '~' :: t -> Formula.Negation (parse_formula t)
+		| _        -> failwith "Expecting a negation: " ^ s
 
 	(*
 		Parses a context string and returns the formulae.
 		Invariants: The string must be comma-separated formula strings.
 		@param s The string to be parsed.
 	*)
-	let parseContext (s:string):Formula.formula list =
+	let parse_context (s:string):Formula.formula list =
 		let fs = Str.split (Str.regexp ",") s in
-		List.map parseFormula fs
+		List.map parse_formula fs
 
 	(*
 		Parses a string and returns a formula for it.
@@ -138,16 +152,16 @@ module Parser = struct
 		Invariants: The string must be a well-formed formula.
 		@param s The string to be parsed.
 	*)
-	let parseQuestion (s:string):Question.question =
+	let parse_question (s:string):Question.question =
 		let s = Str.global_replace (Str.regexp " ") "" s in
 		let s = Str.global_replace (Str.regexp "|-") "⊢" s in
 		let s = Str.global_replace (Str.regexp "<->") "=" s in
 		let s = Str.global_replace (Str.regexp "->") ">" s in
 		match Str.split (Str.regexp "⊢") s with
-		| g :: [] -> ([], parseFormula g)
-		| c :: g :: [] -> (parseContext c, parseFormula g)
+		| g :: [] -> ([], parse_formula g)
+		| c :: g :: [] -> (parse_context c, parse_formula g)
 		| _ -> failwith ("Invalid question: " ^ s)
 end
 ;;
 
-print_endline (Question.to_string (Parser.parseQuestion "(X & (A <-> D)), F -> G, C |- B"));;
+print_endline (Question.to_string (Parser.parse_question "(X & (A <-> D)), F -> G, C |- B"));;
