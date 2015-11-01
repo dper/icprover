@@ -29,13 +29,13 @@ module Formula = struct
   
 	let rec to_string (f:formula):string =
 	  match f with
-	  | Bottom               -> "_|_"
+	  | Bottom               -> "⊥"
 	  | Atomic s             -> Char.escaped s
 	  | Negation s           -> "~" ^ (to_string s)
 	  | Conjunction (l, r)   -> "(" ^ (to_string l) ^ "&" ^ (to_string r) ^ ")"
 	  | Disjunction (l, r)   -> "(" ^ (to_string l) ^ "|" ^ (to_string r) ^ ")"
-	  | Implication (l, r)   -> "(" ^ (to_string l) ^ "->" ^ (to_string r) ^ ")"
-	  | Biconditional (l, r) -> "(" ^ (to_string l) ^ "<->" ^ (to_string r) ^ ")"
+	  | Implication (l, r)   -> "(" ^ (to_string l) ^ "→" ^ (to_string r) ^ ")"
+	  | Biconditional (l, r) -> "(" ^ (to_string l) ^ "↔" ^ (to_string r) ^ ")"
 end
 
 (* The context for a step in a proof search. *)
@@ -314,7 +314,7 @@ module Question = struct
 	type dependencies = question list * Rule.rule;;
 
 	let to_string ((c,g):question):string = 
-		(Context.to_string c) ^ " |- " ^ (Formula.to_string g)
+		(Context.to_string c) ^ " ⊢ " ^ (Formula.to_string g)
 
 	(*
 		Returns the result of applying conjunction introduction.
