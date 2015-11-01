@@ -17,7 +17,7 @@ ocaml test-lists.ml
 
 Modify the `list` files as desired to try proving other questions.
 
-The proof search code is in `prover.ml`.  The parser, which takes strings, parses them, and returns formulae and questions and such, is `parser.ml
+The proof search code is in `prover.ml`.  The parser, which takes strings, parses them, and returns formulae and questions and such, is in `parser.ml`.
 
 
 Contact
