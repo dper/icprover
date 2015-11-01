@@ -44,7 +44,8 @@ module Context = struct
 
 	let empty ():context = []
 
-	(**
+	(*
+		Extends a context with a formula.
 		@param c The context to extend.
 		@param n The formula to add.
 	*)
@@ -57,7 +58,8 @@ module Context = struct
 	let exists (c:context) (f:Formula.formula):bool =
 		List.exists (Formula.equals f) c
 
-	(**
+	(*
+		Returns true if the parent context is a superset of the subcontext.
 		@param p The parent context.
 		@param c The sub-context.
 	*)
@@ -105,15 +107,15 @@ module Rule = struct
   		| Ef -> " EFQ"
 end
 
-(* An extraction branch.
-   A series of goal-directed forward eliminations. *)
+(* An extraction branch. *)
 module Extraction = struct
 	open Formula;;
 
 	type step = L of formula | R of formula | End of formula
 	type branch = step list
 
-	(**
+	(*
+		Returns a list of normal extraction branches from p to g.
 		@param p The premise of the extraction.
 		@param g The goal of the extraction.
 	*)
@@ -139,7 +141,7 @@ module Extraction = struct
 		in
 			find_extractions_local p []
 
-	(**
+	(*
 		@param p The premise of the extraction.
 	*)
 	let find_cases_branches (p:formula):(branch list) =
@@ -159,7 +161,7 @@ module Extraction = struct
 		in
 			find_cases_local p []
 
-	(**
+	(*
 		@param p The premise of the extraction.
 	*)
 	let find_bottom_branches (p:formula):(branch list) =
@@ -181,6 +183,10 @@ module Extraction = struct
   	in
   		find_contra_local p []
 
+	(*
+		Returns a list of the open questions raised by the extraction branch.
+		@param e The branch to examine.
+	*)
 	let find_normal_questions (e:branch):(Context.context * formula) list =
 		if e = [] then failwith "Invalid branch: []." else
 		let goal = match List.nth e ((List.length e) - 1) with
@@ -215,7 +221,7 @@ module Extraction = struct
 		in
 			find_questions_in_context (Context.empty ()) e
 
-	(**
+	(*
 		@param e The branch, ending in a falsum.
 	*)
 	let find_bottom_questions (e:branch):(Context.context * formula) list =
@@ -252,7 +258,7 @@ module Extraction = struct
 		in
 		find_questions_in_context (Context.empty ()) e
 
-	(**
+	(*
 		@param g The goal of the extraction.
 		@param e The branch, ending in g.
 	*)
@@ -300,8 +306,7 @@ module Extraction = struct
 			"<" ^ to_string_local e ^ ">"
 end
 
-(* A question in a proof search.
-   That is, the context and a goal to be proven. *)
+(* A question in a proof search. *)
 module Question = struct
 	open Formula;;
 
@@ -311,22 +316,24 @@ module Question = struct
 	let to_string ((c,g):question):string = 
 		(Context.to_string c) ^ " |- " ^ (Formula.to_string g)
 
-	(* Returns the result of applying conjunction introduction.  Returns [] 
-	   if the rule cannot be applied.
-	   Invariants: none.
-	   @param c The premises.
-	   @param g The goal.
+	(*
+		Returns the result of applying conjunction introduction.
+		Returns [] if the rule cannot be applied.
+		Invariants: none.
+		@param c The premises.
+		@param g The goal.
 	*)
 	let conjunction_intro ((c, g):question):(dependencies list) =
 		match g with
 		| Conjunction(l, r) -> [([(c, l); (c, r)], Rule.Ai)]
 		| _ -> []
 
-	(* Returns the results of applying disjunction introduction left and right.
-	   Returns [] if the rule cannot be applied.
-	   Invariants: none.
-	   @param c The premises.
-	   @param g The goal.
+	(*
+		Returns the results of applying disjunction introduction left and right.
+		Returns [] if the rule cannot be applied.
+		Invariants: none.
+		@param c The premises.
+		@param g The goal.
 	*)
 	let disjunction_intro ((c, g):question):(dependencies list) =
 		match g with
@@ -336,22 +343,24 @@ module Question = struct
     			[left; right]
   		| _ -> []
 
-	(* Returns the result of applying implication introduction.  Returns
-	   [] if the rule cannot be applied.
-	   Invariants: none.
-	   @param c The premises.
-	   @param g The goal.
+	(*
+		Returns the result of applying implication introduction.
+		Returns [] if the rule cannot be applied.
+		Invariants: none.
+		@param c The premises.
+		@param g The goal.
 	*)
 	let implication_intro ((c, g):question):(dependencies list) =
 		match g with
 		| Implication(l ,r) -> [([(Context.extend c l, r)], Rule.Ii)]
 		| _ -> []
 
-	(* Returns the result of applying biconditional introduction.  Returns
-	   [] if the rule cannot be applied.
-	   Invariants: none.
-	   @param c The premises.
-	   @param g The goal.
+	(*
+		Returns the result of applying biconditional introduction.
+		Returns [] if the rule cannot be applied.
+		Invariants: none.
+		@param c The premises.
+		@param g The goal.
 	*)
 	let biconditional_intro ((c, g):question):(dependencies list) =
 		match g with
@@ -359,18 +368,21 @@ module Question = struct
 			[([(Context.extend c l, r); (Context.extend c r, l)], Rule.Bi)]
 		| _ -> []
 
-	(* Extends the context of dependencies.  This is needed for extraction, 
-	   where the open questions initially have context information only from 
-	   the branch itself.  This merges the search context (dc) with the 
-	   extraction context. *)
+	(*
+		Extends the context of dependencies.  This is needed for extraction, 
+		where the open questions initially have context information only from 
+		the branch itself.  This merges the search context (dc) with the 
+		extraction context.
+	*)
 	let extend_dep_context ((ql, r):dependencies) (dc:Context.context):dependencies =
 		(List.map (fun (c,f) -> (Context.join dc c, f)) ql, r)
  
-	(* Returns the extractions possible from this question.  If the
-	   goal is a falsum, extraction cannot be used, so [] is returned.
-	   Invariants: none.
-	   @param c The premises.
-	   @param g The goal.
+	(*
+		Returns the extractions possible from this question.  If the
+		goal is a falsum, extraction cannot be used, so [] is returned.
+		Invariants: none.
+		@param c The premises.
+		@param g The goal.
  	*)
 	let extraction ((c, g):question):dependencies list =
 		if g = Formula.Bottom then [] else 
@@ -384,10 +396,11 @@ module Question = struct
 		in
 			List.fold_right (fun p dl -> (premise_extraction p) @ dl) c []
 
-	(* Returns the cases possible from this question.
-	   Invariants: none.
-	   @param c The context.
-	   @param g The goal.
+	(*
+		Returns the cases possible from this question.
+		Invariants: none.
+		@param c The context.
+		@param g The goal.
 	*)
 	let cases ((c, g):question):(dependencies list) =
   		let branch_cases (eb:Extraction.branch):dependencies =
@@ -400,11 +413,12 @@ module Question = struct
   		in
   			List.fold_right (fun p dl -> (premise_cases p) @ dl) c []
 
-	(* Returns dependencies for the contradictory pairs.  Expands 
-	   their extraction branches.  
-	   Invariants: none.
-	   @param c The context.
-	   @param g The goal.
+	(*
+		Returns dependencies for the contradictory pairs.
+		Expands their extraction branches.  
+		Invariants: none.
+		@param c The context.
+		@param g The goal.
 	*)
 	let bottom ((c, g):question):dependencies list =
 		if (not (Formula.equals Bottom g)) then [] else
@@ -418,32 +432,33 @@ module Question = struct
 		in
 		List.fold_right (fun p dl -> (premise_bottom p) @ dl) c []
 
-	(* Returns the result of applying classical negation.  Cannot be applied
-	   if the goal is a falsum; returns [] in this case.
-	   Invariants: none.
-	   @param c The context.
-	   @param g The goal.
+	(*
+		Returns the result of applying classical negation.  
+		Invariants: Cannot be applied to a goal of falsum.
+		@param c The context.
+		@param g The goal.
 	*)
 	let classical_negation ((c, g):question):(dependencies list) =
 	  	if (Formula.equals Bottom g) then [] else
   		let c_new = Context.extend c (Negation g) in 
 		    	[([(c_new, Bottom)], Rule.Cn)]
 
-	(* Returns the result of applying ex falso quodlibet.  Cannot be applied
-	   if the goal is a falsum; returns [] in this case.
-	   Invariants: none.
-	   @param c The context.
-	   @param g The goal.
+	(*
+		Returns the result of applying ex falso quodlibet.  
+		Invariants: Cannot be applied to a goal of falsum.
+		@param c The context.
+		@param g The goal.
 	*)
 	let ex_falso_quodlibet ((c, g):question):(dependencies list) =
 		if (Formula.equals Bottom g) then [] else
 		[([(c, Bottom)], Rule.Ef)]
 
-	(* Returns the result of applying negation introduction.  Returns
-	   [] if the rule cannot be applied.
-	   Invariants: none.
-	   @param c The context.
-	   @param g The goal.
+	(*
+		Returns the result of applying negation introduction.
+		Returns [] if the rule cannot be applied.
+		Invariants: none.
+		@param c The context.
+		@param g The goal.
 	*)
 	let negation_intro ((c, g):question):(dependencies list) =
 		match g with
@@ -451,10 +466,11 @@ module Question = struct
 	               	[([(c_new, Bottom)], Rule.Ni)]
 		| _ -> []
 
-	(* Returns a list of all possible rule applications on q except
-	   for classical rules or ex falso quodlibet. 
-	   Invariants: none.
-	   @param q The question to be proven.
+	(*
+		Returns a list of all possible rule applications on q except
+		for classical rules or ex falso quodlibet. 
+		Invariants: none.
+		@param q The question to be proven.
 	*)
 	let expand_basic (q:question):dependencies list =
 		(extraction q) @
@@ -478,7 +494,8 @@ module Thread = struct
 	type thread = (Question.question * (Rule.rule option)) list;;
 
 	(* 
-	   @param t The thread.
+		Returns true if the top of the thread is a repeat question.
+		@param t The thread.
 	*)
 	let repeat_question (t:thread):bool =
 		match t with
@@ -488,7 +505,8 @@ module Thread = struct
 			(Formula.equals bg g) && (Context.subcontext c bc)) l
 
 	(* 
-	   @param t The thread.
+		Returns true if ex falso quodlibet has been applied twice the same way.
+		@param t The thread.
 	*)
 	let extra_ex_falso_quodlibet (t:thread):bool =
 		match t with
@@ -496,20 +514,18 @@ module Thread = struct
 		| ((cc, _), Some Rule.Ef)::((co, _), _)::_ -> Context.subcontext cc co
 		| _ -> false
 
-	(* One should not use ~C on the positive half of a contradictory pair.
- 	   It's not obvious how much checking for this would affect proof search
-  	   speed, though in cases of backtracking on falsums, it would probably
-  	   be significant.  In programmatic terms, if the head of a thread is shown
-  	   by ~C and the second element is shown by _|_I, then that thread
-  	   should not be pursued.  The current strategy of using just threads
-  	   that are question lists does not appear effective for this.  I can either
-  	   be creative in backtrack checking or extend threads some.  But even
-  	   adding the rule application to threads isn't quite enough -- some
-  	   contextual knowledge of, say, which premise an element is, is also 
-  	   necessary.
-
-  	   TODO Write method to be used right after repeat_question that filters
-	   out such rule applications.
+	(*
+		One need not use ~C on the positive half of a contradictory pair.
+ 		It's not obvious how much checking for this would affect proof search
+  		speed, though in cases of backtracking on falsums, it would probably
+  		be significant.  In programmatic terms, if the head of a thread is shown
+  		by ~C and the second element is shown by _|_I, then that thread
+  		should not be pursued.  The current strategy of using just threads
+  		that are question lists does not appear effective for this.  I can either
+  		be creative in backtrack checking or extend threads some.  But even
+  		adding the rule application to threads isn't quite enough -- some
+  		contextual knowledge of, say, which premise an element is, is also 
+  		necessary.
 	*)
 end
 
@@ -522,7 +538,8 @@ module Proof = struct
                	a: proof list;
                	r: Rule.rule };;
 
-	(* Returns Some p where p is a proof of q, or None if no proof can be found.
+	(*
+		Returns Some p where p is a proof of q, or None if no proof can be found.
 		@param expand The expansion function -- applies inference rules.
 		@param t The thread; initially [] and built as rules are applied.
 		@param q The question to be proven.
@@ -533,9 +550,11 @@ module Proof = struct
   	if (Thread.extra_ex_falso_quodlibet t) then None else
   	(* Add other context-specific filters here. *)
   
-  	(* Tries to prove all questions.  If this is possible, returns
-  	Some pl where pl is the list of the subproofs, and if not
-  	returns None.  Returns Some [] when given [] questions. *)
+  	(*
+		Tries to prove all questions.  If this is possible, returns
+  		Some pl where pl is the list of the subproofs, and if not
+  		returns None.  Returns Some [] when given [] questions.
+	*)
   	let rec search_questions (questions, rule) answers: proof list option =
     	match questions with
     	| [] -> Some answers
@@ -552,9 +571,11 @@ module Proof = struct
     	| Some answers -> Some { q = q ; a = answers ; r = rule }
   	in
 
-  	(* Tries to prove the dependencies.  Returns Some p where p is a proof of
-	   a dependecies if one can be found, or None if none can be found.  Stops as
-	   soon as one is found. *)
+  	(*
+		Tries to prove the dependencies.  Returns Some p where p is a proof of
+		a dependecies if one can be found, or None if none can be found.  Stops as
+		soon as one is found.
+	*)
   	let rec search_expansion expansion:proof option = 
 		match expansion with
 		| [] -> None
@@ -565,17 +586,19 @@ module Proof = struct
 	in
 	search_expansion (expand q)
 
-	(* Searches for a proof of q using search type st.
-	   @param st The search type.
-	   @param q The question.
+	(*
+		Searches for a proof of q using search type st.
+		@param st The search type.
+		@param q The question.
 	*)
 	let search (st:search_type) (q:Question.question):proof option =
 		match st with
 		| Intuitionistic -> thread_search Question.expand_intuition [(q, None)] q
 		| Classical -> thread_search Question.expand_classical [(q, None)] q 
 
-	(* Returns a string of the proof.
-	   @param p The proof.
+	(*
+		Returns a string of the proof.
+		@param p The proof.
 	*)
 	let to_string (p:proof):string = 
 		let rec to_string_i p i =
