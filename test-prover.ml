@@ -8,17 +8,47 @@
 
 	Useful string functions documented here:
 	http://caml.inria.fr/pub/docs/manual-ocaml/libref/Str.html
+	http://caml.inria.fr/pub/docs/manual-ocaml/libref/String.html
 *)
 module Parser = struct
 	(*
+		Returns Some p where p is the position of the main
+		binary operator, or None if none exists.  A binary
+		operator is the main operator if it's sitting anywhere
+		in the formula not contained in parentheses.
+	*)
+	let findMainBinaryOperator (s:string):int option =
+		(* TODO *)
+	end
+
+	(*
+		Returns a string without extraneous outer parentheses.
+		If such parentheses existed, they are removed.
+		If they didn't exist, the original string is returned.
+		Invariants: none.
+		@param s The string to strip.
+	*)
+	let removeOuterParentheses (s:string):s = 
+		(* TODO *)
+	end
+
+	(*
 		Parses a string and returns a formula.
+		1. Handle atomic formulae.
+		2. If there's a top-level binary operator, handle it.
+		3. Handle negations.
 		Invariants: The string must be a well-formed formula.
 		@param s The string to be parsed.
 	*)
 	let parseFormula (s:string):Formula.formula =
-		let s = String.trim s in
 		print_endline s ;
-		Formula.Bottom	
+
+		(* A single-character string is atomic. *)
+		if String.length s == 1 then
+			Formula.Atomic s.[0]
+		else
+			Formula.Bottom
+
 
 	(*
 		Parses a context string and returns the formulae.
