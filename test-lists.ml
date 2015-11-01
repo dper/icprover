@@ -27,20 +27,22 @@ let failures_to_string failures =
 	@param filename The file name.
 *)
 let prove search (search_type:Proof.search_type) (filename:string):bool =
+	print_endline "----------------------------------------------";
+	print_endline ("Using " ^ filename ^ ".");
+	print_endline "The following propositions should be provable.";
 	let lines = read_file filename in
 	let questions = List.map parse_question lines in
 	let results = List.map 
 	  (fun q -> 
-		let _ = print_endline ("Trying to prove " ^ Question.to_string q) in
+		let _ = print_endline ("* " ^ Question.to_string q) in
 	  (q, search search_type q)) questions
   in
 	let total_count = List.length results in
 	let failures = List.filter (fun (_, po) -> po = None) results in
 	let success_count = (List.length results) - (List.length failures) in
-	let _ =
-		if failures = [] then () else
+	let _ = if failures = [] then () else
 		print_endline (failures_to_string failures) in
-	let _ = print_endline (filename ^ ": Proved: " ^ 
+	let _ = print_endline ("Proved: " ^ 
 		(string_of_int success_count) ^ "/" ^ 
 		(string_of_int total_count) ^ ".") in
 	true
@@ -53,24 +55,26 @@ let prove search (search_type:Proof.search_type) (filename:string):bool =
 	@param filename The file name.
 *)
 let do_not_prove search (search_type:Proof.search_type) (filename:string):bool =
+	print_endline "--------------------------------------------------";
+	print_endline ("Using " ^ filename ^ ".");
+	print_endline "The following propositions should not be provable.";
 	let lines = read_file filename in
 	let questions = List.map parse_question lines in
 	let results = List.map 
 	  (fun q -> 
-		  let _ = print_endline ("Trying not to prove " ^ Question.to_string q) in
+		  let _ = print_endline ("* " ^ Question.to_string q) in
 		  (q, search search_type q)) questions
 		in
 	let proven = List.filter (fun (_, po) -> po != None) results in
-	let _ =
-		if proven == [] then () else
+	let _ = if proven == [] then () else
 		print_endline (failures_to_string proven) in
-	let _ = print_endline (filename ^ ": Did not prove: " ^ 
+	let _ = print_endline ("Did not prove: " ^ 
 		(string_of_int (List.length results - List.length proven)) ^ "/" ^ 
 		(string_of_int (List.length results)) ^ ".") in
 	true
 ;;
 
-prove Proof.search Proof.Intuitionistic "positive-intuition.txt";;
-prove Proof.search Proof.Classical "positive-classical.txt";;
-do_not_prove Proof.search Proof.Intuitionistic "negative-intuition.txt";;
-do_not_prove Proof.search Proof.Classical "negative-classical.txt";;
+prove Proof.search Proof.Classical "list.classical.provable.txt";;
+do_not_prove Proof.search Proof.Classical "list.classical.unprovable.txt";;
+prove Proof.search Proof.Intuitionistic "list.intuition.provable.txt";;
+do_not_prove Proof.search Proof.Intuitionistic "list.intuition.unprovable.txt";;
