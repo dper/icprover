@@ -49,9 +49,9 @@ module Parser = struct
 		let rec scan (l:char list) (d:int):bool = 
 			match l with
 			| '(' :: t  -> scan t (d + 1)
-			| ')' :: [] -> d == 0
+			| ')' :: [] -> d == 1
 			| ')' :: t  -> d > 1 && scan t (d - 1)
-			| x :: t    -> scan t d
+			| _ :: t    -> scan t d
 			| _         -> false
 				
 		in
@@ -141,7 +141,14 @@ module Parser = struct
 		@param p The offset of the operator.
 	*)
 	and parse_binary (s:string) (p:int):Formula.formula =
-		Formula.Bottom
+		let left = Str.string_before s p in
+		let right = Str.string_after s (p + 1) in
+		match s.[p] with
+		| '&' -> Formula.Conjunction(parse_formula left, parse_formula right)
+		| 'v' -> Formula.Disjunction(parse_formula left, parse_formula right)
+		| '>' -> Formula.Implication(parse_formula left, parse_formula right)
+		| '=' -> Formula.Biconditional(parse_formula left, parse_formula right)
+		| _   -> failwith ("Expecting a binary operator: " ^ s)
 
 	(*
 		Parses a context string and returns the formulae.
@@ -171,4 +178,4 @@ module Parser = struct
 end
 ;;
 
-print_endline (Question.to_string (Parser.parse_question "~~A <-> B |- C"));;
+print_endline (Question.to_string (Parser.parse_question "~~~~~A <-> B, ~~~(F & (G -> (~H v I))) |- C"));;
