@@ -12,6 +12,56 @@
 *)
 module Parser = struct
 	(*
+		Returns a list of chars for a string.
+		Invariants: none.
+		@param s The string to explode.
+	*)
+	let explode (s:string):char list =
+		let rec exp i l =
+			if i < 0 then l
+			else exp (i - 1) (s.[i] :: l)
+		in
+			exp (String.length s - 1) []
+
+	(*
+		Returns true if the formula string has extra outer parentheses.
+		Invariants: The string represents a formula.
+		@param s The string to check.
+	*)
+	let extraOuterParentheses (s:string):bool = 
+		(*
+			If we find a closing parenthesis that matches the
+			opening parenthesis, stop.  If it's the final
+                        character, these two are extra.
+		*)
+		let rec scan (l:char list) (c:int):bool = 
+			match l with
+			| '(' :: t  -> scan t (c + 1)
+			| ')' :: [] -> c == 0
+			| ')' :: t  -> c > 1 && scan t (c - 1)
+			| x :: t    -> scan t c
+			| _         -> false
+				
+		in
+		match (explode s) with
+		| []       -> false
+		| _ :: []  -> false
+		| '(' :: t -> scan t 1
+		| _        -> false
+
+	(*
+		Returns the formula string with extra outer parentheses removed.
+		If none existed, the original string is returned.
+		Invariants: The string represents a formula.
+		@param s The string to strip.
+	*)
+	let removeExtraOuterParentheses (s:string):string =
+		if extraOuterParentheses s then
+			String.sub s 1 (String.length s - 2)
+		else
+			s
+
+	(*
 		Returns Some p where p is the position of the main
 		binary operator, or None if none exists.  A binary
 		operator is the main operator if it's sitting anywhere
@@ -19,18 +69,14 @@ module Parser = struct
 	*)
 	let findMainBinaryOperator (s:string):int option =
 		(* TODO *)
-	end
+		None
 
 	(*
-		Returns a string without extraneous outer parentheses.
-		If such parentheses existed, they are removed.
-		If they didn't exist, the original string is returned.
-		Invariants: none.
-		@param s The string to strip.
+		TODO
+		- Find the main binary operator.
+		- Split on it.
+		- Handle negations.
 	*)
-	let removeOuterParentheses (s:string):s = 
-		(* TODO *)
-	end
 
 	(*
 		Parses a string and returns a formula.
