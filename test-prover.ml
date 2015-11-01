@@ -109,14 +109,18 @@ module Parser = struct
 	let parseFormula (s:string):Formula.formula =
 		print_endline s;
 
+		(* Strip unnecessary outer parentheses. *)
+		let s = removeExtraOuterParentheses s in
+
 		(* A single-character string is atomic. *)
 		if String.length s == 1 then
 			match s.[0] with
 			| 'A' .. 'Z' as c -> Formula.Atomic c
 			| _               -> Formula.Bottom
 		else
-			Formula.Bottom
-
+			match findMainBinaryOperator s with
+			| Some p -> Formula.Bottom
+			| None -> Formula.Bottom
 
 	(*
 		Parses a context string and returns the formulae.
@@ -146,4 +150,4 @@ module Parser = struct
 end
 ;;
 
-Parser.parseQuestion "(X & (A <-> D)), F -> G, C |- B";;
+print_endline (Question.to_string (Parser.parseQuestion "(X & (A <-> D)), F -> G, C |- B"));;
