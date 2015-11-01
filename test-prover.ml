@@ -42,6 +42,7 @@ module Parser = struct
 		let s = Str.global_replace (Str.regexp "<->") "↔" s in
 		let s = Str.global_replace (Str.regexp "->") "→" s in
 		match Str.split (Str.regexp "⊢") s with
+		| g :: [] -> ([], parseFormula g)
 		| c :: g :: [] -> (parseContext c, parseFormula g)
 		| _ -> failwith ("Invalid question: " ^ s)
 end
