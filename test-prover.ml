@@ -111,8 +111,6 @@ module Parser = struct
 		@param s The string to be parsed.
 	*)
 	let rec parse_formula (s:string):Formula.formula =
-		print_endline s;
-
 		(* Strip unnecessary outer parentheses. *)
 		let s = remove_extra_outer_parentheses s in
 
@@ -120,10 +118,10 @@ module Parser = struct
 		if String.length s == 1 then
 			match s.[0] with
 			| 'A' .. 'Z' as c -> Formula.Atomic c
-			| _               -> Formula.Bottom
+			| _               -> failwith ("Expecting a capital letter: " ^ s)
 		else
 			match find_main_binary_operator s with
-			| Some p -> Formula.Bottom
+			| Some p -> parse_binary s p
 			| None -> parse_negation s
 
 	(*
@@ -135,6 +133,15 @@ module Parser = struct
 		match (explode s) with
 		| '~' :: t -> Formula.Negation (parse_formula (implode t))
 		| _        -> failwith ("Expecting a negation: " ^ s)
+
+	(*
+		Parses a string where the main operator is binary and returns a formula.
+		Invariants: s is a formula string with a main binary operator at p.
+		@param s The string to be parsed.
+		@param p The offset of the operator.
+	*)
+	and parse_binary (s:string) (p:int):Formula.formula =
+		Formula.Bottom
 
 	(*
 		Parses a context string and returns the formulae.
@@ -164,4 +171,4 @@ module Parser = struct
 end
 ;;
 
-print_endline (Question.to_string (Parser.parse_question "~A |- B"));;
+print_endline (Question.to_string (Parser.parse_question "~~A <-> B |- C"));;
