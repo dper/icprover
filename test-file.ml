@@ -4,10 +4,11 @@ let failures_to_string failures =
 	List.fold_right 
 		(fun (q, _) s -> (s ^ "\n" ^ Question.to_string q)) failures ""
 
-(* Returns true iff all questions in the file are proven.
-   Invariants: The file must exist and be readable.
-   @param file The file name.
-   @param search_type The search type.
+(*
+	Returns true iff all questions in the file are proven.
+	Invariants: The file must exist and be readable.
+	@param search_type The search type.
+	@param file The file name.
 *)
 let prove search search_type file =
 	let ql = Loader.load file in
@@ -28,10 +29,11 @@ let prove search search_type file =
 	true
 ;;
 
-(* Returns true iff none of the questions in the file are proven.
-   Invariants: The file must exist and be readable.
-   @param file The file name.
-   @param search_type The search type.
+(*
+	Returns true iff none of the questions in the file are proven.
+	Invariants: The file must exist and be readable.
+	@param search_type The search type.
+	@param file The file name.
 *)
 let do_not_prove search search_type file =
 	let ql = Loader.load file in
