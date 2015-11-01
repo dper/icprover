@@ -31,7 +31,7 @@ module Formula = struct
 	  match f with
 	  | Bottom               -> "⊥"
 	  | Atomic s             -> Char.escaped s
-	  | Negation s           -> "~" ^ (to_string s)
+	  | Negation s           -> "¬" ^ (to_string s)
 	  | Conjunction (l, r)   -> "(" ^ (to_string l) ^ "&" ^ (to_string r) ^ ")"
 	  | Disjunction (l, r)   -> "(" ^ (to_string l) ^ "|" ^ (to_string r) ^ ")"
 	  | Implication (l, r)   -> "(" ^ (to_string l) ^ "→" ^ (to_string r) ^ ")"
