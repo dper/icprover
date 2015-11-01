@@ -20,12 +20,25 @@ module Parser = struct
 		let fs = Str.split (Str.regexp ",") s in
 		List.map parseFormula fs
 
+	(*
+		Parses a string and returns a formula for it.
+		Internally, we switch to single-character operators.
+		White space is ignored.  
+
+		Invariants: The string must be a well-formed formula.
+
+		@param s The string to be parsed.
+	*)
 	let parseQuestion (s:string):Question.question =
-		match Str.split (Str.regexp "|-") s with
+		let s = Str.global_replace (Str.regexp " ") "" s in
+		let s = Str.global_replace (Str.regexp "|-") "⊢" s in
+		let s = Str.global_replace (Str.regexp "<->") "↔" s in
+		let s = Str.global_replace (Str.regexp "->") "→" s in
+		match Str.split (Str.regexp "⊢") s with
 		| c :: g :: [] -> (parseContext c, parseFormula g)
 		| _ -> failwith ("Invalid question: " ^ s)
 end
 ;;
 
-Parser.parseQuestion "A, C |- B";;
+Parser.parseQuestion "A <-> D, F -> G, C |- B";;
 print_endline "Printing.";;
