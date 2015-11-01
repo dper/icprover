@@ -33,13 +33,15 @@ module Parser = struct
 			If we find a closing parenthesis that matches the
 			opening parenthesis, stop.  If it's the final
                         character, these two are extra.
+			@param l The remaining characters to examine.
+			@param d The depth of the parentheses.
 		*)
-		let rec scan (l:char list) (c:int):bool = 
+		let rec scan (l:char list) (d:int):bool = 
 			match l with
-			| '(' :: t  -> scan t (c + 1)
-			| ')' :: [] -> c == 0
-			| ')' :: t  -> c > 1 && scan t (c - 1)
-			| x :: t    -> scan t c
+			| '(' :: t  -> scan t (d + 1)
+			| ')' :: [] -> d == 0
+			| ')' :: t  -> d > 1 && scan t (d - 1)
+			| x :: t    -> scan t d
 			| _         -> false
 				
 		in
@@ -68,12 +70,30 @@ module Parser = struct
 		in the formula not contained in parentheses.
 	*)
 	let findMainBinaryOperator (s:string):int option =
-		(* TODO *)
-		None
+		(*
+			If we find a binary symbol at top level, return its index.
+			@param l The remaining characters.
+			@param d The depth of the parentheses.
+			@param p The current index.
+		*)
+		let rec scan (l:char list) (d:int) (p:int) =
+			match l with
+			| []       -> None
+			| '(' :: t -> scan t (d + 1) (p + 1)
+			| ')' :: t -> scan t (d - 1) (p + 1)
+			| '&' :: t -> if d == 0 then Some p else scan t d (p + 1)
+			| 'v' :: t -> if d == 0 then Some p else scan t d (p + 1)
+			| '=' :: t -> if d == 0 then Some p else scan t d (p + 1)
+			| '>' :: t -> if d == 0 then Some p else scan t d (p + 1)
+			| _ :: t   -> scan t d (p + 1)
+		in
+		match (explode s) with
+		| []      -> None
+		| _ :: [] -> None
+		| l       -> scan l 0 0
 
 	(*
 		TODO
-		- Find the main binary operator.
 		- Split on it.
 		- Handle negations.
 	*)
@@ -87,11 +107,13 @@ module Parser = struct
 		@param s The string to be parsed.
 	*)
 	let parseFormula (s:string):Formula.formula =
-		print_endline s ;
+		print_endline s;
 
 		(* A single-character string is atomic. *)
 		if String.length s == 1 then
-			Formula.Atomic s.[0]
+			match s.[0] with
+			| 'A' .. 'Z' as c -> Formula.Atomic c
+			| _               -> Formula.Bottom
 		else
 			Formula.Bottom
 
@@ -115,8 +137,8 @@ module Parser = struct
 	let parseQuestion (s:string):Question.question =
 		let s = Str.global_replace (Str.regexp " ") "" s in
 		let s = Str.global_replace (Str.regexp "|-") "⊢" s in
-		let s = Str.global_replace (Str.regexp "<->") "↔" s in
-		let s = Str.global_replace (Str.regexp "->") "→" s in
+		let s = Str.global_replace (Str.regexp "<->") "=" s in
+		let s = Str.global_replace (Str.regexp "->") ">" s in
 		match Str.split (Str.regexp "⊢") s with
 		| g :: [] -> ([], parseFormula g)
 		| c :: g :: [] -> (parseContext c, parseFormula g)
@@ -124,5 +146,4 @@ module Parser = struct
 end
 ;;
 
-Parser.parseQuestion "A <-> D, F -> G, C |- B";;
-print_endline "Printing.";;
+Parser.parseQuestion "(X & (A <-> D)), F -> G, C |- B";;
