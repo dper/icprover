@@ -124,7 +124,7 @@ module Parser = struct
 		else
 			match find_main_binary_operator s with
 			| Some p -> Formula.Bottom
-			| None -> Formula.Bottom
+			| None -> parse_negation s
 
 	(*
 		Parses a string of a formula where the negation is the main operator.
@@ -133,8 +133,8 @@ module Parser = struct
 	*)
 	and parse_negation (s:string):Formula.formula =
 		match (explode s) with
-		| '~' :: t -> Formula.Negation (parse_formula t)
-		| _        -> failwith "Expecting a negation: " ^ s
+		| '~' :: t -> Formula.Negation (parse_formula (implode t))
+		| _        -> failwith ("Expecting a negation: " ^ s)
 
 	(*
 		Parses a context string and returns the formulae.
@@ -164,4 +164,4 @@ module Parser = struct
 end
 ;;
 
-print_endline (Question.to_string (Parser.parse_question "(X & (A <-> D)), F -> G, C |- B"));;
+print_endline (Question.to_string (Parser.parse_question "~A |- B"));;
